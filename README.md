@@ -56,7 +56,7 @@ After the playbook has done, reboot the target.
 
 ### Upgrade an existing node
 
-Firt update VERSION in your environment with the version of Storj to install (eg. v1.47.3)
+First update VERSION in your environment with the version of Storj to install (eg. v1.47.3)
 
 Run the upgrade playbook:
  
@@ -66,6 +66,7 @@ Run the upgrade playbook:
 
 NOTES
 
-1. Note the the playbook runs as storj user
-2. The playbook requests to confirm the installation of the new version; check that the verion you are installing is a release version
-3. At the end of the process the service storagenode is restarted
+1. Note the the playbook runs as **storj** user
+2. The playbook requests to confirm the installation of the new version; check that the version you are installing is a release version
+3. At the end of the process the service **storagenode** is restarted
+
