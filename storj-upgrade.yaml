@@ -31,7 +31,10 @@
       version: "{{ lookup('env', 'VERSION') }}"
 
   - name: Build and install
-    script: files/build-and-install.sh
+    script: 
+      cmd: files/build-and-install.sh
+      chdir: /home/storj/STORJ
+    register: console
 
   - name: Check version
     shell:
