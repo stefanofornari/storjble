@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd $HOME
-
 PATH=/usr/local/node-v16.13.2-linux-x86/bin:/usr/local/go/bin:$PATH
 
 cd src/web/storagenode 
