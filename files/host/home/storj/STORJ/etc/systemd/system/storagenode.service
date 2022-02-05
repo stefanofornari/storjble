@@ -1,0 +1,11 @@
+[Unit]
+Description=STORJ storage node
+
+[Service]
+User=storj
+WorkingDirectory=/home/storj/STORJ
+ExecStart=/home/storj/STORJ/bin/storagenode run
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

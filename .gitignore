@@ -1,0 +1,6 @@
+env.*
+!env.example
+repository/*
+!repository/readme.txt
+hosts.*
+!hosts.example

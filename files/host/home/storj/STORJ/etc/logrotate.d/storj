@@ -1,0 +1,12 @@
+/home/storj/STORJ/logs/storagenode.log
+/home/storj/STORJ/logs/successrate.txt
+{
+	rotate 60
+	daily
+	missingok
+	notifempty
+	compress
+	copytruncate
+	dateext
+        su storj storj
+}

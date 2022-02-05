@@ -1,0 +1,76 @@
+---
+
+# #############################################################################
+# Upgrade
+# #############################################################################
+
+- name: Upgrade
+  hosts: storj
+
+  tasks:
+
+  - name: Fail if env is not set
+    fail: 
+      msg: Please run proper env.(test|prod)
+    when: lookup('env', 'TARGET') == ""
+
+  - name: Fail if no Storj version is provided
+    fail:
+      msg: Please provide a value of the env variable VERSION
+    when: lookup('env', 'VERSION') == ""
+
+  - name: Clean up
+    file:
+      path: STORJ/src
+      state: absent
+
+  - name: Checkout Storj
+    git:
+      repo: https://github.com/storj/storj.git
+      dest: STORJ/src
+      version: "{{ lookup('env', 'VERSION') }}"
+
+  - name: Build and install
+    script: files/build-and-install.sh
+
+  - name: Check version
+    shell:
+      cmd: go/bin/storagenode version
+    register: console
+
+  - name: Confirmation
+    pause:
+      prompt: "\nAbout to install {{ console.stdout }} \n\nTo continue type 'yes' and press ENTER."
+    register: confirm
+
+  - name: Confirmation
+    fail:
+      msg: "Aborted!"
+    when: (confirm.user_input is defined) and not (confirm.user_input == "yes")
+
+  - name: Storj executable
+    copy:
+      src: go/bin/storagenode
+      dest: "/home/storj/STORJ/bin/storagenode-{{ lookup('env', 'VERSION') }}"
+      remote_src: true
+      mode: +x
+
+  - file:
+      path: /home/storj/STORJ/bin/storagenode
+      src: "/home/storj/STORJ/bin/storagenode-{{ lookup('env', 'VERSION') }}"
+      state: link
+
+# #############################################################################
+# Service restart
+# #############################################################################
+
+- name: Restart
+  hosts: storj
+  become: true
+
+  tasks:
+
+  - service:
+      name: storagenode
+      state: restarted
+

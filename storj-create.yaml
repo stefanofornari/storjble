@@ -1,0 +1,251 @@
+---
+
+# #############################################################################
+# Intro
+# #############################################################################
+
+- name: Intro
+  hosts: storj
+
+  tasks:
+
+  - name: Disclaimer
+    pause:
+      prompt: |
+        # ########################
+        #
+        # DISCLAIMER: this script creates a Storj DCS storage node from scratch.
+        # It DELETES existing settings and configuration and recreate it with 
+        # predefined values.
+        #
+        # DO NOT USE this script to fix an existing set up or to upgrade the
+        # storage node.
+        #
+        # Are you sure you to continue type 'yes' and press ENTER.
+        #
+    register: confirm
+    when: not (lookup('env', 'SKIP_INTRO') == "true")
+
+  - name: Confirmation
+    fail: 
+      msg: "Aborted!"
+    when: (confirm.user_input is defined) and not (confirm.user_input == "yes")
+
+# #############################################################################
+# Create DCS node
+# #############################################################################
+
+- name: Create DCS node
+  hosts: storj
+  become: yes
+
+  tasks:
+
+  - name: Fail if env is not set
+    fail: 
+      msg: Please run proper env.(test|prod)
+    when: lookup('env', 'TARGET') == ""
+
+  - name: Fail if no Storj version is provided
+    fail:
+      msg: Please provide a value of the env variable VERSION
+    when: lookup('env', 'VERSION') == ""
+
+  - name: Initial clean-up
+  # Go lang
+    file:
+      path: /usr/local/go
+      state: absent
+ 
+  # Node JS
+  - file:
+      path: /usr/local/node-v16.13.2-linux-x86
+      state: absent
+
+  # storj home directory
+  - file:
+      path: /home/storj
+      state: absent
+
+  # Storj source code
+  - file:
+      path: src
+      state: absent
+
+  # Cron tasks
+  - file:
+      path: /etc/crond.d/storj
+      state: absent
+
+  - name: git,bash,gcc,libc-dev from apt repository
+    apt:
+      name: git,bash,gcc,libc-dev
+      force: yes
+      state: present
+  
+  - name: Fixed IP address with netplan
+    copy:
+      src: "files/{{lookup('env', 'TARGET')}}/etc/netplan/00-installer-config.yaml"
+      dest: /etc/netplan
+
+  - name: GO lang
+    unarchive:
+      src: repository/go1.17.6.linux-386.tar.gz
+      dest: /usr/local
+ 
+  - name: NodeJS
+    unarchive:
+      src: repository/node-v16.13.2-linux-x86.tar.gz
+      dest: /usr/local
+
+  - name: System PATH
+    vars:
+      NODEJS_PATH: /usr/local/node-v16.13.2-linux-x86/bin
+      GOLANG_PATH: /usr/local/go/bin
+    when: ansible_env.PATH is not search(NODEJS_PATH)
+    copy:
+      dest: /etc/profile.d/storj-path.sh
+      content: 'PATH={{ NODEJS_PATH }}:{{ GOLANG_PATH }}:$PATH'
+
+  - name: go-bindata
+    shell:
+       cmd: GOPATH=/usr/local/go /usr/local/go/bin/go install github.com/go-bindata/go-bindata/go-bindata@latest
+
+  - name: Wonder Shaper
+    git:
+      repo: https://github.com/magnific0/wondershaper.git
+      dest: wondershaper
+  - copy:
+      src: wondershaper/wondershaper
+      dest: /usr/local/bin
+      remote_src: true
+      mode: +x
+
+  - name: Storj user
+    user: 
+      name: storj
+      groups: sudo
+      comment: User to run STORJ
+      #      password: $1$20220114$sbrrSlB2gKZzazQn71Jd4/
+      password: "{{ lookup('env', 'STORJPWD') }}"
+      shell: /bin/bash
+
+  - name: User storj setup
+    copy:
+      src: files/host/home/storj/
+      dest: /home/storj/
+      owner: storj
+      group: storj
+
+  - name: Storage mount point
+    vars:
+      mountfile: "files/{{lookup('env', 'TARGET') }}/etc/fstab"
+      mountline: "{{ lookup('file', mountfile) }}"
+    lineinfile:
+      dest: /etc/fstab
+      line: "{{ mountline }}"
+      regexp: "/mnt/storj"
+      create: yes
+      state: present
+
+
+# #############################################################################
+# Build Storj
+# #############################################################################
+- name: Build Storj
+  hosts: storj
+  #hosts: none
+  become: false
+  tasks:
+
+  - name: Checkout Storj
+    git:
+      repo: https://github.com/storj/storj.git
+      dest: src
+      version: "{{ lookup('env', 'VERSION') }}"
+
+  - name: Build and install
+    script: files/build-and-install.sh
+
+# #############################################################################
+# Storj node setup
+# #############################################################################
+- name: Storj node setup
+  hosts: storj
+  #  hosts: none
+  become: true
+  tasks:
+  - name: Storj executable
+    copy:
+      src: go/bin/storagenode
+      dest: /home/storj/STORJ/bin
+      remote_src: true
+      owner: storj
+      mode: +x
+
+  - name: wondershaper on/off
+    cron:
+      name: Limit the bandwidth at 09:00AM
+      minute: "0"
+      hour: "9"
+      user: root
+      cron_file: storj
+      job: wondershaper -a {{ ansible_default_ipv4.interface }} -d 8192 -u 3072
+
+  - cron:
+      name: Remove bandwidth limit at 09:00PM
+      minute: "0"
+      hour: "20"
+      user: root
+      cron_file: storj
+      job: wondershaper -a {{ ansible_default_ipv4.interface }} -c
+
+  - name: Daily success rate analysis
+    cron:
+      name: Success rate analysis
+      minute: "0"
+      hour: "1"
+      user: storj
+      cron_file: storj
+      job: /home/storj/STORJ/bin/successrate.sh $(ls -1 -r /home/storj/STORJ/logs/storagenode.*|head -1) > /home/storj/STORJ/logs/successrate.txt
+
+  - name: Log rotation
+    file:
+      src: /home/storj/STORJ/etc/logrotate.d/storj
+      path: /etc/logrotate.d/storj
+      state: link
+
+  - name: Storj service
+    file:
+      src: /home/storj/STORJ/etc/systemd/system/storagenode.service
+      path: /etc/systemd/system/storagenode.service
+      state: link
+  - service:
+      name: storagenode
+      enabled: true
+
+  - name: Identity
+    unarchive:
+      src: "repository/identity-{{lookup('env', 'TARGET') }}.tgz"
+      dest: /home/storj/.local/share/storj
+      owner: storj
+      group: storj
+
+  - name: Storagenode setup
+    shell:
+      cmd: sudo su - storj -c "STORJ/bin/storagenode setup"
+
+  - name: Storagenode testing configuration
+    lineinfile:
+      dest: /home/storj/.local/share/storj/storagenode/config.yaml
+      line: "{{ item.to }}"
+      regexp: "{{ item.search }}"
+      state: present
+    with_items:
+      - { search: "^operator.wallet:", to: "operator.wallet: \"{{ lookup('env', 'operator_wallet') }}\""}
+      - { search: "^storage.allocated-disk-space:", to: "storage.allocated-disk-space: 2.5 GB"}
+      - { search: "^# storage2.monitor.minimum-disk-space:", to: "storage2.monitor.minimum-disk-space: 1.00 GB"}
+      - { search: "^# storage2.trust.sources:", to: 'storage2.trust.sources: "https://www.storj.io/dcs-satellites"'}
+      - { search: "^log.output:", to: "log.output: /home/storj/STORJ/logs/storagenode.log"}
+
+
