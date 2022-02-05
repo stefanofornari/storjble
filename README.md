@@ -62,7 +62,7 @@ Run the upgrade playbook:
  
 > $> . env
 
-> $> ansible-playbook -i hosts storj-create.yaml --user storj -K
+> $> ansible-playbook -i hosts storj-upgrade.yaml --user storj -K
 
 NOTES
 
