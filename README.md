@@ -1,6 +1,8 @@
 # storjble
 Ansible script to set up a Storj node from source on a 32bit ubuntu based linux.
 
+> DISCLAIMER: I am really a beginner with Ansible, in fact this is my first project. It is at the same time something I need and an opportunity to learn the tool. Any comment and feedback is welcome, I'll be happy to take them into accoutn to improve the project.
+
 ## Preamble
 
 The purpose of the project is to:
