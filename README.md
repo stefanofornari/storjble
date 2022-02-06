@@ -48,7 +48,8 @@ This will:
 - - Create the user storj
 - Add the mount point adding to fstab the line files/{TARGET}/etc/fstab
 - Build and install Storj ver {VERSION} under /home/storj/STORJ
-- Install the script successrate.sh (https://github.com/ReneSmeekes/storj_success_rate) and schedule to run it every day
+- Install the script earnings.py (<https://github.com/ReneSmeekes/storj_earnings>)
+- Install the script successrate.sh (<https://github.com/ReneSmeekes/storj_success_rate>) and schedule to run it every day
 - Configure logrotate to rotate Storj and successrate logs
 - Install a Storj node identity
 - Configure the node with testing values
