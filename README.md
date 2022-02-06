@@ -15,6 +15,14 @@ In both cases it is assumed the target system is an 32 bit ubuntu based linux sy
 
 Many thanks to who helped me to put all the pieces together, in particular **Storj support engineers** and the **Storj forum**. Special thanks to **Alexey** who always and promptely replied to my questions. Thanks **littleskunk**, **elek** and **ifraixedes** for the support in fixing a building issue.
 
+## Prerequisites
+
+This approach assumes the following requirements are met:
+
+- Ubuntu installed with at least a sudoer user
+- Networking is configured and the machine is accessible from the Ansible controller
+- SSH certificate authentication (i.e. passwordless)
+
 ## Instructions
 
 As a first step, we need to download some required packages for a 32bit system
