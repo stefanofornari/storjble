@@ -126,7 +126,6 @@
       name: storj
       groups: sudo
       comment: User to run STORJ
-      #      password: $1$20220114$sbrrSlB2gKZzazQn71Jd4/
       password: "{{ lookup('env', 'STORJPWD') }}"
       shell: /bin/bash
 
@@ -136,6 +135,17 @@
       dest: /home/storj/
       owner: storj
       group: storj
+
+  - find:
+      paths: /home/storj/STORJ/bin/
+      file_type: file
+      patterns: "*"
+    register: filelist
+
+  - file:
+      path: "{{ item.path }}"
+      mode: +x
+    with_items: "{{ filelist.files }}"
 
   - name: Storage mount point
     vars:
