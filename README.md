@@ -22,6 +22,7 @@ This approach assumes the following requirements are met:
 - Ubuntu installed with at least a sudoer user
 - Networking is configured and the machine is accessible from the Ansible controller
 - SSH certificate authentication (i.e. passwordless)
+- Ansible
 
 ## Instructions
 
