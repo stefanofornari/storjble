@@ -90,7 +90,7 @@
 
   - name: GO lang
     unarchive:
-      src: repository/go1.17.6.linux-386.tar.gz
+      src: repository/go1.20.2.linux-386.tar.gz
       dest: /usr/local
  
   - name: NodeJS
