@@ -1,0 +1,17 @@
+# #############################################################################
+# STORJ configuration
+# fragment to be included in other playbooks
+# #############################################################################  
+  - name: Storagenode  configuration
+    lineinfile:
+      dest: /home/storj/.local/share/storj/storagenode/config.yaml
+      line: "{{ item.to }}"
+      regexp: "{{ item.search }}"
+      state: present
+    with_items:
+      - { search: "^operator.wallet:", to: "operator.wallet: \"{{ lookup('env', 'operator_wallet') }}\""}
+      - { search: "^operator.wallet-features:", to: "operator.wallet-features: [\"zksync\"]"}
+      - { search: "^storage.allocated-disk-space:", to: "storage.allocated-disk-space: {{ lookup('env', 'allocated_disk_space') }} GB"}
+      - { search: "^(# )?storage2.monitor.minimum-disk-space:", to: "storage2.monitor.minimum-disk-space: {{ lookup('env', 'minimum_disk_space') }} GB"}
+      - { search: "^(# )?storage2.trust.sources:", to: 'storage2.trust.sources: "https://www.storj.io/dcs-satellites"'}
+      - { search: "^log.output:", to: "log.output: /home/storj/STORJ/logs/storagenode.log"}
