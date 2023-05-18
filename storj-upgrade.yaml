@@ -63,6 +63,8 @@
       src: "/home/storj/STORJ/bin/storagenode-{{ lookup('env', 'VERSION') }}"
       state: link
 
+  - include: include/configuration.yaml
+
 # #############################################################################
 # Service restart
 # #############################################################################

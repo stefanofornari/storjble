@@ -1,0 +1,18 @@
+---
+
+# #############################################################################
+# Config
+# #############################################################################
+
+- name: Configuration
+  hosts: storj
+  become: true
+
+  tasks:
+
+  - name: STORJ Configuration
+    debug:
+      msg: STORJ Configuration
+
+  - include: include/configuration.yaml
+

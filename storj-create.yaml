@@ -164,7 +164,6 @@
 # #############################################################################
 - name: Build Storj
   hosts: storj
-  #hosts: none
   become: false
   tasks:
 
@@ -182,7 +181,6 @@
 # #############################################################################
 - name: Storj node setup
   hosts: storj
-  #  hosts: none
   become: true
   tasks:
   - name: Storj executable
@@ -245,17 +243,5 @@
     shell:
       cmd: sudo su - storj -c "STORJ/bin/storagenode setup"
 
-  - name: Storagenode testing configuration
-    lineinfile:
-      dest: /home/storj/.local/share/storj/storagenode/config.yaml
-      line: "{{ item.to }}"
-      regexp: "{{ item.search }}"
-      state: present
-    with_items:
-      - { search: "^operator.wallet:", to: "operator.wallet: \"{{ lookup('env', 'operator_wallet') }}\""}
-      - { search: "^storage.allocated-disk-space:", to: "storage.allocated-disk-space: 2.5 GB"}
-      - { search: "^# storage2.monitor.minimum-disk-space:", to: "storage2.monitor.minimum-disk-space: 1.00 GB"}
-      - { search: "^# storage2.trust.sources:", to: 'storage2.trust.sources: "https://www.storj.io/dcs-satellites"'}
-      - { search: "^log.output:", to: "log.output: /home/storj/STORJ/logs/storagenode.log"}
-
+  - include: include/configuration.yaml
 

@@ -4,3 +4,4 @@ repository/*
 !repository/readme.txt
 hosts.*
 !hosts.example
+ansible.log
