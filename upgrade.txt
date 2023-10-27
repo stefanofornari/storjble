@@ -1,0 +1,3 @@
+vi env.prod <- change the version number
+. env.prod <- set the host configuration
+ansible-playbook -v -i hosts.prod storj-upgrade.yaml --user storj -K
