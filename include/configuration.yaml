@@ -10,7 +10,7 @@
       state: present
     with_items:
       - { search: "^operator.wallet:", to: "operator.wallet: \"{{ lookup('env', 'operator_wallet') }}\""}
-      - { search: "^operator.wallet-features:", to: "operator.wallet-features: [\"zksync\"]"}
+      - { search: "^operator.wallet-features:", to: "operator.wallet-features: [zksync-era]"}
       - { search: "^storage.allocated-disk-space:", to: "storage.allocated-disk-space: {{ lookup('env', 'allocated_disk_space') }} GB"}
       - { search: "^(# )?storage2.monitor.minimum-disk-space:", to: "storage2.monitor.minimum-disk-space: {{ lookup('env', 'minimum_disk_space') }} GB"}
       - { search: "^(# )?storage2.trust.sources:", to: 'storage2.trust.sources: "https://www.storj.io/dcs-satellites"'}
